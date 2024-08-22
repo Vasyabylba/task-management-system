@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,6 +43,7 @@ public class UserController {
 
     @Operation(summary = "Update user by id")
     @PutMapping("/{id}")
+    @PreAuthorize(value = "@userService.getOne(#id).getEmail() == authentication.name")
     @ResponseStatus(HttpStatus.OK)
     public UserResponse update(@PathVariable Long id, @RequestBody @Valid UserRequest userRequest) {
         return userService.update(id, userRequest);
@@ -49,6 +51,7 @@ public class UserController {
 
     @Operation(summary = "Delete user by id")
     @DeleteMapping("/{id}")
+    @PreAuthorize(value = "@userService.getOne(#id).getEmail() == authentication.name")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         userService.delete(id);

@@ -7,6 +7,7 @@ import by.vasyabylba.taskmanagement.model.User;
 import by.vasyabylba.taskmanagement.repository.UserRepository;
 import by.vasyabylba.taskmanagement.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserResponse getOne(Long id) {
@@ -26,8 +28,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse create(UserRequest userRequest) {
-        int hashCode = userRequest.getPassword().hashCode();
-        userRequest.setPassword(String.valueOf(hashCode));
+        String encodedPassword = passwordEncoder.encode(userRequest.getPassword());
+        userRequest.setPassword(encodedPassword);
         User user = userMapper.toUser(userRequest);
         User resultUser = userRepository.save(user);
         return userMapper.toUserResponse(resultUser);
@@ -35,6 +37,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse update(Long id, UserRequest userRequest) {
+        if (userRequest.getPassword() != null) {
+            String encodedPassword = passwordEncoder.encode(userRequest.getPassword());
+            userRequest.setPassword(encodedPassword);
+        }
         User user = userRepository.findById(id).orElseThrow();
         User updated = userMapper.partialUpdate(userRequest, user);
         User resultUser = userRepository.save(updated);
